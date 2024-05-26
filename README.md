@@ -1,1 +1,1 @@
-https://vercel.com/robitus-projects/camera-app-js/hHxLwkPnt46NqqDssmJPEUhcaxBD
+https://camera-app-p78omzbhc-robitus-projects.vercel.app/
