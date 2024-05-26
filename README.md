@@ -1,1 +1,1 @@
-https://camera-app-p78omzbhc-robitus-projects.vercel.app/
+https://purple-technology.github.io/react-camera-pro/
