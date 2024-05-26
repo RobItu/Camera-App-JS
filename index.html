@@ -3,57 +3,92 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Camera Access</title>
+    <title>Camera Access with html5-qrcode</title>
     <style>
-      video {
+      #reader {
         width: 100%;
         max-width: 600px;
+        margin: auto;
       }
       button {
         margin: 10px;
       }
     </style>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
   </head>
   <body>
-    <h1>Camera Access Example</h1>
-    <video id="video" autoplay></video>
+    <h1>Camera Access Example with html5-qrcode</h1>
+    <div id="reader"></div>
     <div>
       <button id="front-camera">Front Camera</button>
       <button id="rear-camera">Rear Camera</button>
     </div>
-    <div>Hello</div>
-    <div>Scroll</div>
-    <div>[[[[[[[[[[]]]]]]]]]</div>
 
     <script>
-      const video = document.getElementById("video");
+      let html5QrCode;
+      const readerElementId = "reader";
       const frontCameraButton = document.getElementById("front-camera");
       const rearCameraButton = document.getElementById("rear-camera");
 
       function startCamera(facingMode) {
-        navigator.mediaDevices
-          .getUserMedia({
-            video: { facingMode: facingMode },
-            audio: false,
+        if (html5QrCode) {
+          html5QrCode
+            .stop()
+            .then(() => {
+              html5QrCode.clear();
+              initCamera(facingMode);
+            })
+            .catch((err) => {
+              console.error("Failed to stop qr code scanner", err);
+            });
+        } else {
+          initCamera(facingMode);
+        }
+      }
+
+      function initCamera(facingMode) {
+        html5QrCode = new Html5Qrcode(readerElementId);
+        Html5Qrcode.getCameras()
+          .then((devices) => {
+            if (devices && devices.length) {
+              const device = devices.find((device) =>
+                device.label.toLowerCase().includes(facingMode)
+              );
+              const cameraId = device ? device.id : devices[0].id;
+              html5QrCode
+                .start(
+                  { deviceId: { exact: cameraId } },
+                  {
+                    fps: 10,
+                    qrbox: 250,
+                  },
+                  (qrCodeMessage) => {
+                    console.log(`QR Code detected: ${qrCodeMessage}`);
+                  },
+                  (errorMessage) => {
+                    console.warn(`QR Code scan error: ${errorMessage}`);
+                  }
+                )
+                .catch((err) => {
+                  console.error("Failed to start qr code scanner", err);
+                });
+            }
           })
-          .then((stream) => {
-            video.srcObject = stream;
-          })
-          .catch((error) => {
-            console.error("Error accessing camera:", error);
+          .catch((err) => {
+            console.error("Failed to get cameras", err);
           });
       }
 
       frontCameraButton.addEventListener("click", () => {
-        startCamera("user");
+        startCamera("front");
       });
 
       rearCameraButton.addEventListener("click", () => {
-        startCamera({ exact: "environment" });
+        startCamera("back");
       });
 
       // Start with the front camera by default
-      startCamera("user");
+      startCamera("front");
     </script>
   </body>
 </html>
